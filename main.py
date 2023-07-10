@@ -31,7 +31,7 @@ def send_request(user_operation_hash, chain):
 
 def update_transaction(transaction_hash, chain):
     try:
-        url = "http://3.38.245.156/guardian/update/txn/"
+        url = "http://3.38.245.156/guardian/update/"
         headers = {"Content-Type": "application/json"}
         data = {
             "transaction_hash": transaction_hash,

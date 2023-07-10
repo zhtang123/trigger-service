@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  guardian-service:
+    container_name: trigger-service
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 0.0.0.0:12004:12004
+    environment:
+      - TZ=Asia/Shanghai
+    restart: always

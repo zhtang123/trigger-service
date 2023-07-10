@@ -44,12 +44,18 @@ def update_transaction(transaction_hash, chain):
         return None
     return response.json()
 
+
+MAX_WAIT_TIME = 60  # 例如，设置为60秒
+
 def worker():
     while True:
-        user_operation_hash, chain = queue.get()
-        logging.info(f"Checking {user_operation_hash}")
+        user_operation_hash, chain, start_time = queue.get()
+        elapsed_time = time.time() - start_time
+        if elapsed_time > MAX_WAIT_TIME:
+            logging.warning(f"Transaction {user_operation_hash} expired from queue after {MAX_WAIT_TIME}s")
+            continue
         if time.time() - requests_dict.get((user_operation_hash, chain), 0) < 5:
-            queue.put((user_operation_hash, chain))
+            queue.put((user_operation_hash, chain, start_time))
             time.sleep(1)
             continue
         logging.info(f"Sending request for {user_operation_hash}")
@@ -60,8 +66,9 @@ def worker():
             logging.info(f"Transaction update response: {update_response}")
         elif response and 'error' in response:
             logging.error(f"Error: {response['error']['message']}")
-            queue.put((user_operation_hash, chain))
+            queue.put((user_operation_hash, chain, start_time))
             requests_dict[(user_operation_hash, chain)] = time.time()
+
 
 @app.route('/trigger/', methods=['POST'])
 def trigger():
@@ -70,8 +77,9 @@ def trigger():
     chain = data.get('chain')
     if not user_operation_hash or not chain:
         return {"success": False, "error": "Missing required parameters"}, 400
-    queue.put((user_operation_hash, chain))
-    requests_dict[(user_operation_hash, chain)] = time.time()
+    start_time = time.time()
+    queue.put((user_operation_hash, chain, start_time))
+    requests_dict[(user_operation_hash, chain)] = start_time
     return {'success': True, 'status': 'added to queue'}, 202
 
 if __name__ == "__main__":

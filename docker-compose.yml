@@ -8,6 +8,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - 0.0.0.0:12004:12004
+    env_file:
+      - .env
     environment:
       - TZ=Asia/Shanghai
     restart: always

@@ -5,6 +5,7 @@ import requests
 import time
 import json
 import logging
+import os
 
 app = Flask(__name__)
 queue = Queue()
@@ -14,7 +15,7 @@ requests_dict = {}
 
 def send_request(user_operation_hash, chain):
     try:
-        url = f"http://3.38.245.156/bundler/{chain}"
+        url = f"http://{os.environ['BUNDLER_IP']}/bundler/{chain}"
         headers = {"Content-Type": "application/json"}
         data = {
             "jsonrpc": "2.0",
@@ -31,7 +32,7 @@ def send_request(user_operation_hash, chain):
 
 def update_transaction(transaction_hash, chain):
     try:
-        url = "http://3.38.245.156/guardian/update/"
+        url = f"http://{os.environ['GUARDIAN_IP']}/guardian/update/"
         headers = {"Content-Type": "application/json"}
         data = {
             "transaction_hash": transaction_hash,
@@ -45,7 +46,7 @@ def update_transaction(transaction_hash, chain):
     return response.json()
 
 
-MAX_WAIT_TIME = 60  # 例如，设置为60秒
+MAX_WAIT_TIME = 60
 
 def worker():
     while True:
